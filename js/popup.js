@@ -89,7 +89,11 @@ const buildSearchResults = results => {
   results.forEach(result => {
     resultsForDisplay += `<div><a href="${result.dropletUrl}" target="_blank">${
       result.name
-    }</a></div>`;
+    }</a> <a href="#" aria-data="${
+      result.pub_ipv4
+    }" name="copy-public-ip">PubIP</a> <a href="#" aria-data="${
+      result.private_ipv4
+    }" name="copy-private-ip">PrivIP</a></div>`;
   });
 
   return resultsForDisplay;
@@ -102,6 +106,8 @@ const showBuiltSearchResults = builtResults => {
     chrome.storage.local.set({
       searchedResults: builtResults
     });
+    attachCopyPublicIpEvent();
+    attachCopyPrivateIpEvent();
   }
 };
 
@@ -111,9 +117,36 @@ const searchForDroplet = () => {
     const filtered = data.results.filter(dp => {
       return (
         dp.name.search(searchingFor) > -1 ||
-        dp.tags.filter(tag => tag.name.search(searchingFor) > -1).length > 0
+        dp.tags.filter(tag => tag.name.search(searchingFor) > -1).length > 0 ||
+        dp.pub_ipv4.search(searchingFor) > -1 ||
+        (dp.private_ipv4 && dp.private_ipv4.search(searchingFor) > -1)
       );
     });
     showBuiltSearchResults(buildSearchResults(filtered));
+  });
+};
+
+const copyText = text => {
+  const el = document.createElement("textarea");
+  el.value = text;
+  document.body.appendChild(el);
+  el.select();
+  document.execCommand("copy");
+  document.body.removeChild(el);
+};
+
+const attachCopyPublicIpEvent = () => {
+  document.getElementsByName("copy-public-ip").forEach(copy => {
+    copy.addEventListener("click", event => {
+      copyText(event.target.attributes["aria-data"].value);
+    });
+  });
+};
+
+const attachCopyPrivateIpEvent = () => {
+  document.getElementsByName("copy-private-ip").forEach(copy => {
+    copy.addEventListener("click", event => {
+      copyText(event.target.attributes["aria-data"].value);
+    });
   });
 };
