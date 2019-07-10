@@ -4,7 +4,7 @@ Small chrome extension to help with DO searches
 For the extension to work, you must be logged in to digital ocean
 
 
-#### Chrome Installation
+#### Chrome Local Installation
 
 1. Clone this repository
 1. In chrome go to More Tools -> extensions
@@ -14,7 +14,7 @@ For the extension to work, you must be logged in to digital ocean
 1. Select `baby_shark`
 1. Get :moneybag: 
 
-#### Firefox Installation
+#### Firefox Local Installation
 
 1. Go to the [Firefox developer add-on api key page](https://addons.mozilla.org/en-US/developers/addon/api/key/)
 1. Create a new api key and save your token and secret
