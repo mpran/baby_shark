@@ -1,12 +1,12 @@
 const BASE_URL = "https://cloud.digitalocean.com";
 document.addEventListener("DOMContentLoaded", event => {
   // get searched results
-  chrome.storage.local.get("searchedResults", function (data) {
+  chrome.storage.local.get("searchedResults", data => {
     showBuiltSearchResults(data.searchedResults);
   });
 
   // get searched results
-  chrome.storage.local.get("results", function (data) {
+  chrome.storage.local.get("results", data => {
     // sync if there are no results
     if (data.results == null) {
       syncAccountData();
