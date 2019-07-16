@@ -1,20 +1,16 @@
 const BASE_URL = "https://cloud.digitalocean.com";
 document.addEventListener("DOMContentLoaded", event => {
   // get searched results
-  chrome.storage.local.get("searchedResults", function(data) {
+  chrome.storage.local.get("searchedResults", data => {
     showBuiltSearchResults(data.searchedResults);
   });
 
   // get searched results
-  chrome.storage.local.get("results", function(data) {
+  chrome.storage.local.get("results", data => {
     // sync if there are no results
     if (data.results == null) {
       syncAccountData();
     }
-  });
-  // search button
-  document.getElementById("search-button").addEventListener("click", () => {
-    searchForDroplet();
   });
 
   // search input
@@ -23,6 +19,9 @@ document.addEventListener("DOMContentLoaded", event => {
       searchForDroplet();
     }
   });
+
+  // focus search box
+  document.getElementById("search-input").focus();
 });
 
 const syncAccountData = () => {
@@ -85,19 +84,30 @@ const resetStatusMessage = () => {
 };
 
 const buildSearchResults = results => {
-  let resultsForDisplay = "";
+  let resultsForDisplay = '<div class="list-group">';
   results.forEach(result => {
-    resultsForDisplay += `<div><a href="${result.dropletUrl}" target="_blank">${
-      result.name
-    }</a> <a href="#" aria-data="${
-      result.pub_ipv4
-    }" name="copy-public-ip">PubIP</a> <a href="#" aria-data="${
-      result.private_ipv4
-    }" name="copy-private-ip">PrivIP</a></div>`;
+    resultsForDisplay += `
+      <div class="list-group-item list-group-item-action flex-column align-items-start">
+        <div class="d-flex w-100 justify-content-between">
+          <h5 class="mb-1"><a href="${result.dropletUrl}" target="_blank">${result.name}</a></h5>
+          <small>
+            <div><a href="#" aria-data="${result.pub_ipv4}" name="copy-public-ip">Public IP</a></div>
+            <div><a href="#" aria-data="${result.private_ipv4}" name="copy-private-ip">Private IP</a></div>
+          </small>
+        </div>
+        <small>
+          ${buildTags(result.tags)}
+        </small>
+      </div>
+    `;
   });
+
+  resultsForDisplay += '</div>'
 
   return resultsForDisplay;
 };
+
+const buildTags = tags => tags.map(tag => `<span class="badge badge-primary badge-pill">${tag.name}</span>`);
 
 const showBuiltSearchResults = builtResults => {
   document.getElementById("search-results").innerHTML =
@@ -113,7 +123,7 @@ const showBuiltSearchResults = builtResults => {
 
 const searchForDroplet = () => {
   const searchingFor = document.getElementById("search-input").value;
-  chrome.storage.local.get("results", function(data) {
+  chrome.storage.local.get("results", data => {
     const filtered = data.results.filter(dp => {
       return (
         dp.name.search(searchingFor) > -1 ||
@@ -128,6 +138,7 @@ const searchForDroplet = () => {
 
 const copyText = text => {
   const el = document.createElement("textarea");
+  el.type = "hidden";
   el.value = text;
   document.body.appendChild(el);
   el.select();
