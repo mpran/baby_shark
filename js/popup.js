@@ -107,9 +107,7 @@ const buildSearchResults = results => {
   return resultsForDisplay;
 };
 
-const buildTags = tags => {
-  return tags.map(tag => `<span class="badge badge-primary badge-pill">${tag.name}</span>`);
-}
+const buildTags = tags => tags.map(tag => `<span class="badge badge-primary badge-pill">${tag.name}</span>`);
 
 const showBuiltSearchResults = builtResults => {
   document.getElementById("search-results").innerHTML =
@@ -125,7 +123,7 @@ const showBuiltSearchResults = builtResults => {
 
 const searchForDroplet = () => {
   const searchingFor = document.getElementById("search-input").value;
-  chrome.storage.local.get("results", function (data) {
+  chrome.storage.local.get("results", data => {
     const filtered = data.results.filter(dp => {
       return (
         dp.name.search(searchingFor) > -1 ||
