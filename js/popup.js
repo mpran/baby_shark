@@ -1,10 +1,7 @@
+import { debounce } from './utils.js';
+
 const BASE_URL = "https://cloud.digitalocean.com";
 document.addEventListener("DOMContentLoaded", event => {
-  // get searched results
-  chrome.storage.local.get("searchedResults", data => {
-    showBuiltSearchResults(data.searchedResults);
-  });
-
   // get searched results
   chrome.storage.local.get("results", data => {
     // sync if there are no results
@@ -14,9 +11,11 @@ document.addEventListener("DOMContentLoaded", event => {
   });
 
   // search input
-  document.getElementById("search-input").addEventListener("keyup", event => {
-    if (event.keyCode === 13) {
-      searchForDroplet();
+  document.getElementById("search-input").addEventListener("input", event => {
+    if (event.target.value.length >= 1) {
+      debounce(searchForDroplet(event.target.value), 250);
+    } else {
+      showBuiltSearchResults("");
     }
   });
 
@@ -110,19 +109,22 @@ const buildSearchResults = results => {
 const buildTags = tags => tags.map(tag => `<span class="badge badge-primary badge-pill">${tag.name}</span>`);
 
 const showBuiltSearchResults = builtResults => {
-  document.getElementById("search-results").innerHTML =
-    builtResults == null || builtResults === "" ? "" : builtResults;
-  if (builtResults !== "") {
+  const searchResultsElement = document.getElementById("search-results");
+
+  if (builtResults && builtResults !== "") {
+    searchResultsElement.innerHTML =
+      builtResults == null || builtResults === "" ? "" : builtResults;
     chrome.storage.local.set({
       searchedResults: builtResults
     });
     attachCopyPublicIpEvent();
     attachCopyPrivateIpEvent();
+  } else {
+    searchResultsElement.innerHTML = "";
   }
 };
 
-const searchForDroplet = () => {
-  const searchingFor = document.getElementById("search-input").value;
+const searchForDroplet = searchingFor => {
   chrome.storage.local.get("results", data => {
     const filtered = data.results.filter(dp => {
       return (
@@ -132,7 +134,15 @@ const searchForDroplet = () => {
         (dp.private_ipv4 && dp.private_ipv4.search(searchingFor) > -1)
       );
     });
-    showBuiltSearchResults(buildSearchResults(filtered));
+
+    const ordered = filtered.sort((a, b) => {
+      if (a.name < b.name) { return -1 }
+      if (a.name > b.name) { return 1 }
+
+      return 0;
+    });
+
+    showBuiltSearchResults(buildSearchResults(ordered));
   });
 };
 
