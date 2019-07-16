@@ -111,20 +111,17 @@ const buildTags = tags => tags.map(tag => `<span class="badge badge-primary badg
 const showBuiltSearchResults = builtResults => {
   const searchResultsElement = document.getElementById("search-results");
 
-  if (builtResults === "") {
-    searchResultsElement.innerHTML = "";
-  } else {
+  if (builtResults && builtResults !== "") {
     searchResultsElement.innerHTML =
       builtResults == null || builtResults === "" ? "" : builtResults;
-    if (builtResults !== "") {
-      chrome.storage.local.set({
-        searchedResults: builtResults
-      });
-      attachCopyPublicIpEvent();
-      attachCopyPrivateIpEvent();
-    }
+    chrome.storage.local.set({
+      searchedResults: builtResults
+    });
+    attachCopyPublicIpEvent();
+    attachCopyPrivateIpEvent();
+  } else {
+    searchResultsElement.innerHTML = "";
   }
-
 };
 
 const searchForDroplet = searchingFor => {
