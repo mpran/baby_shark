@@ -1,12 +1,20 @@
-import { debounce } from './utils.js';
+'use strict';
+
+import { debounce, copyText } from './utils.js';
 
 const BASE_URL = "https://cloud.digitalocean.com";
 document.addEventListener("DOMContentLoaded", event => {
   // get searched results
-  chrome.storage.local.get("results", data => {
-    // sync if there are no results
-    if (data.results == null) {
-      syncAccountData();
+  chrome.storage.local.get("searchedResults", data => {
+    if (data.searchedResults != null) {
+      showBuiltSearchResults(data.searchedResults);
+    }
+  });
+
+  // sync if there are no results
+  chrome.storage.local.get("droplets", data => {
+    if (data.droplets == null) {
+      syncDroplets();
     }
   });
 
@@ -23,31 +31,32 @@ document.addEventListener("DOMContentLoaded", event => {
   document.getElementById("search-input").focus();
 });
 
-const syncAccountData = () => {
+const syncDroplets = () => {
   showStatusMessage("Syncing account data...");
   fetchDroplets().then(initialJson => {
     fetchDroplets(initialJson.meta.pagination.total).then(allResults => {
-      parseAndSaveResults(allResults.droplets);
+      parseAndSaveDropletResults(allResults.droplets);
       resetStatusMessage();
     });
   });
 };
 
-const parseAndSaveResults = results => {
+const parseAndSaveDropletResults = droplets => {
   showStatusMessage("Parsing data...");
-  const parsedResults = results.map(dp => {
+  const mappedDroplets = droplets.map(dp => {
     return {
       id: dp.id,
       name: dp.name,
       pub_ipv4: dp.public_ipv4,
       private_ipv4: dp.private_ipv4,
       tags: dp.tags,
-      dropletUrl: `${BASE_URL}/droplets/${dp.id}`
+      dropletUrl: `${BASE_URL}/droplets/${dp.id}`,
+      organization: dp.fleet.name
     };
   });
   showStatusMessage("Saving data...");
   chrome.storage.local.set({
-    results: parsedResults,
+    droplets: mappedDroplets,
     lastSyncTime: new Date()
   });
   resetStatusMessage();
@@ -82,7 +91,7 @@ const resetStatusMessage = () => {
   statusMessageEl.style.display = "none";
 };
 
-const buildSearchResults = results => {
+const buildDropletSearchResults = results => {
   let resultsForDisplay = '<div class="list-group">';
   results.forEach(result => {
     resultsForDisplay += `
@@ -90,6 +99,9 @@ const buildSearchResults = results => {
         <div class="d-flex w-100 justify-content-between">
           <h5 class="mb-1"><a href="${result.dropletUrl}" target="_blank">${result.name}</a></h5>
           <small>
+            <small>
+              ${buildTag(result.organization)}
+            </small>
             <div><a href="#" aria-data="${result.pub_ipv4}" name="copy-public-ip">Public IP</a></div>
             <div><a href="#" aria-data="${result.private_ipv4}" name="copy-private-ip">Private IP</a></div>
           </small>
@@ -106,14 +118,14 @@ const buildSearchResults = results => {
   return resultsForDisplay;
 };
 
-const buildTags = tags => tags.map(tag => `<span class="badge badge-primary badge-pill">${tag.name}</span>`);
+const buildTags = tags => tags.map(tag => buildTag(tag.name));
+const buildTag = tagName => `<span class="badge badge-primary badge-pill">${tagName}</span>`;
 
 const showBuiltSearchResults = builtResults => {
   const searchResultsElement = document.getElementById("search-results");
 
   if (builtResults && builtResults !== "") {
-    searchResultsElement.innerHTML =
-      builtResults == null || builtResults === "" ? "" : builtResults;
+    searchResultsElement.innerHTML = builtResults;
     chrome.storage.local.set({
       searchedResults: builtResults
     });
@@ -125,8 +137,8 @@ const showBuiltSearchResults = builtResults => {
 };
 
 const searchForDroplet = searchingFor => {
-  chrome.storage.local.get("results", data => {
-    const filtered = data.results.filter(dp => {
+  chrome.storage.local.get("droplets", data => {
+    const filtered = data.droplets.filter(dp => {
       return (
         dp.name.search(searchingFor) > -1 ||
         dp.tags.filter(tag => tag.name.search(searchingFor) > -1).length > 0 ||
@@ -142,18 +154,8 @@ const searchForDroplet = searchingFor => {
       return 0;
     });
 
-    showBuiltSearchResults(buildSearchResults(ordered));
+    showBuiltSearchResults(buildDropletSearchResults(ordered));
   });
-};
-
-const copyText = text => {
-  const el = document.createElement("textarea");
-  el.type = "hidden";
-  el.value = text;
-  document.body.appendChild(el);
-  el.select();
-  document.execCommand("copy");
-  document.body.removeChild(el);
 };
 
 const attachCopyPublicIpEvent = () => {

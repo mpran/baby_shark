@@ -8,3 +8,13 @@ export const debounce = (func, delay) => {
     inDebounce = setTimeout(() => func.apply(context, args), delay);
   }
 }
+
+export const copyText = text => {
+  const el = document.createElement("textarea");
+  el.setAttribute("type", "hidden");
+  el.value = text;
+  document.body.appendChild(el);
+  el.select();
+  document.execCommand("copy");
+  document.body.removeChild(el);
+};
