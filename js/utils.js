@@ -29,9 +29,15 @@ export const addElement = (parentId, elementTag, elementId, html) => {
 
   const parentEl = document.getElementById(parentId);
   const newElement = document.createElement(elementTag);
+  const parser = new DOMParser();
+  const parsed = parser.parseFromString(html, "text/html");
+  const tags = parsed.getElementsByTagName("body");
 
   newElement.id = elementId;
-  newElement.innerHTML = html;
+
+  for (const tag of tags) {
+    newElement.appendChild(tag);
+  }
 
   parentEl.appendChild(newElement);
 }
