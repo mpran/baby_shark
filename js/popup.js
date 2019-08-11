@@ -12,8 +12,11 @@ document.addEventListener("DOMContentLoaded", event => {
   });
 
   // sync if there are no results
-  chrome.storage.local.get("droplets", data => {
-    if (data.droplets == null) {
+  chrome.storage.local.get(null, data => {
+    const lastSyncTimeTyped = Date.parse(data.lastSyncTime);
+    const SIX_HOURS = 6000 * 60 * 60;
+
+    if (data.droplets == null || lastSyncTimeTyped == "Invalid Date" || (Date.now() - SIX_HOURS) > lastSyncTimeTyped) {
       syncDroplets();
     }
   });
@@ -56,11 +59,17 @@ const parseAndSaveDropletResults = droplets => {
   });
   showStatusMessage("Saving data...");
   chrome.storage.local.set({
-    droplets: mappedDroplets,
-    lastSyncTime: new Date()
+    droplets: mappedDroplets
   });
+  updateLastSyncDateTime();
   resetStatusMessage();
 };
+
+const updateLastSyncDateTime = () => {
+  chrome.storage.local.set({
+    lastSyncTime: new Date().toJSON()
+  });
+}
 
 const fetchDroplets = async (resultsPerPage = 1) => {
   const response = await fetch(
