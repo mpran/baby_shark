@@ -89,22 +89,11 @@ const fetchDroplets = async (resultsPerPage = 1) => {
 };
 
 const showStatusMessage = (msg) => {
-  resetStatusMessage();
-  const el = document.createElement("span");
-
-  el.id = "status-msg"
-  el.innerHTML = msg;
-  el.style.display = "block";
-
-  document.body.appendChild(el);
+  addElement(document.body.id, "span", "status-msg", msg);
 };
 
 const resetStatusMessage = () => {
-  const statusMessageEl = document.getElementById("status-msg");
-
-  if (statusMessageEl) {
-    document.body.removeChild(statusMessageEl);
-  }
+  removeElement("status-msg");
 };
 
 const buildDropletSearchResults = (results) => {
