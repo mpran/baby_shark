@@ -1,6 +1,6 @@
 'use strict';
 
-import { debounce, copyText } from './utils.js';
+import { debounce, copyText, addElement, removeElement } from './utils.js';
 
 const BASE_URL = "https://cloud.digitalocean.com";
 document.addEventListener("DOMContentLoaded", event => {
@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", event => {
   });
 
   // sync if there are no results
-  chrome.storage.local.get(null, data => {
+  chrome.storage.local.get(null, (data) => {
     const lastSyncTimeTyped = Date.parse(data.lastSyncTime);
     const SIX_HOURS = 6000 * 60 * 60;
 
@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", event => {
   });
 
   // search input
-  document.getElementById("search-input").addEventListener("input", event => {
+  document.getElementById("search-input").addEventListener("input", (event) => {
     if (event.target.value.length >= 1) {
       debounce(searchForDroplet(event.target.value), 250);
     } else {
@@ -37,16 +37,16 @@ document.addEventListener("DOMContentLoaded", event => {
 const syncDroplets = () => {
   showStatusMessage("Syncing account data...");
   fetchDroplets().then(initialJson => {
-    fetchDroplets(initialJson.meta.pagination.total).then(allResults => {
+    fetchDroplets(initialJson.meta.pagination.total).then((allResults) => {
       parseAndSaveDropletResults(allResults.droplets);
       resetStatusMessage();
     });
   });
 };
 
-const parseAndSaveDropletResults = droplets => {
+const parseAndSaveDropletResults = (droplets) => {
   showStatusMessage("Parsing data...");
-  const mappedDroplets = droplets.map(dp => {
+  const mappedDroplets = droplets.map((dp) => {
     return {
       id: dp.id,
       name: dp.name,
@@ -88,21 +88,28 @@ const fetchDroplets = async (resultsPerPage = 1) => {
   }
 };
 
-const showStatusMessage = msg => {
-  const statusMessageEl = document.getElementById("status-msg");
-  statusMessageEl.innerHTML = msg;
-  statusMessageEl.style.display = "block";
+const showStatusMessage = (msg) => {
+  resetStatusMessage();
+  const el = document.createElement("span");
+
+  el.id = "status-msg"
+  el.innerHTML = msg;
+  el.style.display = "block";
+
+  document.body.appendChild(el);
 };
 
 const resetStatusMessage = () => {
   const statusMessageEl = document.getElementById("status-msg");
-  statusMessageEl.innerHTML = "";
-  statusMessageEl.style.display = "none";
+
+  if (statusMessageEl) {
+    document.body.removeChild(statusMessageEl);
+  }
 };
 
-const buildDropletSearchResults = results => {
+const buildDropletSearchResults = (results) => {
   let resultsForDisplay = '<div class="list-group">';
-  results.forEach(result => {
+  results.forEach((result) => {
     resultsForDisplay += `
       <div class="list-group-item list-group-item-action flex-column align-items-start">
         <div class="d-flex w-100 justify-content-between">
@@ -127,27 +134,25 @@ const buildDropletSearchResults = results => {
   return resultsForDisplay;
 };
 
-const buildTags = tags => tags.map(tag => buildTag(tag.name));
+const buildTags = tags => tags.map((tag) => buildTag(tag.name));
 const buildTag = tagName => `<span class="badge badge-primary badge-pill">${tagName}</span>`;
 
-const showBuiltSearchResults = builtResults => {
-  const searchResultsElement = document.getElementById("search-results");
-
+const showBuiltSearchResults = (builtResults) => {
   if (builtResults && builtResults !== "") {
-    searchResultsElement.innerHTML = builtResults;
+    addElement("results", "span", "search-results", builtResults);
     chrome.storage.local.set({
       searchedResults: builtResults
     });
     attachCopyPublicIpEvent();
     attachCopyPrivateIpEvent();
   } else {
-    searchResultsElement.innerHTML = "";
+    removeElement("search-results");
   }
 };
 
-const searchForDroplet = searchingFor => {
-  chrome.storage.local.get("droplets", data => {
-    const filtered = data.droplets.filter(dp => {
+const searchForDroplet = (searchingFor) => {
+  chrome.storage.local.get("droplets", (data) => {
+    const filtered = data.droplets.filter((dp) => {
       return (
         dp.name.search(searchingFor) > -1 ||
         dp.tags.filter(tag => tag.name.search(searchingFor) > -1).length > 0 ||
