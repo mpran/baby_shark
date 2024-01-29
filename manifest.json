@@ -1,9 +1,9 @@
 {
-  "manifest_version": 2,
+  "manifest_version": 3,
   "name": "Baby Shark",
   "description": "Extension for Digital Ocean searches",
-  "version": "1.0.5.0",
-  "version_name": "1.0.5 stable",
+  "version": "1.0.6.0",
+  "version_name": "1.0.6 stable",
   "browser_action": {
     "default_popup": "popup.html",
     "default_icon": {
