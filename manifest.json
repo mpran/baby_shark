@@ -14,10 +14,11 @@
       "128": "icons/baby-shark-128.png"
     }
   },
-  "permissions": [
-    "storage",
-    "cookies",
-    "webRequest"
-  ],
-  "host_permissions": ["https://cloud.digitalocean.com/"]
+  "permissions": ["storage", "cookies", "webRequest"],
+  "host_permissions": ["https://cloud.digitalocean.com/"],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "{80cf7ecb-d5af-42da-9bcf-63da914bae2e}"
+    }
+  }
 }
