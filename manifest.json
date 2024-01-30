@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "Baby Shark",
   "description": "Extension for Digital Ocean searches",
-  "version": "1.0.7.0",
-  "version_name": "1.0.7 stable",
+  "version": "1.0.8.0",
+  "version_name": "1.0.8 stable",
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
@@ -14,7 +14,7 @@
       "128": "icons/baby-shark-128.png"
     }
   },
-  "permissions": ["storage", "cookies", "webRequest"],
+  "permissions": ["storage", "cookies"],
   "host_permissions": ["https://cloud.digitalocean.com/"],
   "browser_specific_settings": {
     "gecko": {
